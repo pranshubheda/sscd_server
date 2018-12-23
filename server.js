@@ -4,6 +4,7 @@ var bodyParser = require("body-parser");
 const db = require('./database.js');
 let PostModel = require("./model/post");
 let UserModel = require("./model/user");
+let UserLocationModel = require("./model/user_location");
 
 var jsonParser = bodyParser.json();
 var urlencodedParser = bodyParser.urlencoded({ extended: false });
@@ -48,7 +49,7 @@ app.post("/api/login", jsonParser, (req, res) => {
 
     UserModel.findOne(loginCredentials, '_id', (error, user_id) => {
         if (error) {
-            console.error('LOGIN QUERY FAILED. ',loginCredentials,' error: ', error);
+            console.error('Login query FAILED. ',loginCredentials,' error: ', error);
             var error = {
                 error_msg : 'Login failed. Contact Admin.'
             }
@@ -67,6 +68,38 @@ app.post("/api/login", jsonParser, (req, res) => {
             }
         }
     });
+});
+
+app.post("/api/location/update", jsonParser, (req, res) => {
+    var location = req.body;
+    console.log(location.user_id);
+    // UserLocationModel.findOne({user_id: '5c1e70331c9d440000f26865'}, (err, userLocation) => {
+    //     console.log(userLocation);
+    // });
+
+    var query = {user_id  : location.user_id};
+
+    UserLocationModel.findOneAndUpdate(query,
+         {  $set: {
+                latitude: location.latitude,
+                longitude: location.longitude,
+            }
+         },
+        (error, updated_user_location) => {
+            if (error) {
+                console.error('Location update FAILED. ',loginCredentials,' error: ', error);
+                var error = {
+                    error_msg : 'Location update failed. Contact Admin.'
+                }
+                res.status(500).send(JSON.stringify(error));
+            }
+            else {
+                res.send(JSON.stringify({
+                    message: updated_user_location
+                }));            
+            }
+        }
+    );
 });
 
 app.get("/api/test", jsonParser, (req, res) => {
